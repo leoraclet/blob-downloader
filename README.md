@@ -1,6 +1,6 @@
-# Blob Downloader
+# Blob (HLS) Downloader
 
-A lightweight Python application designed to download video or audio streams from streaming platforms using the blob format.
+A lightweight Python application designed to download video or audio HLS streams (.**m3u8**) from streaming platforms using this format.
 Ideal for saving media content for offline use or further processing.
 
 > [!NOTE]
@@ -108,6 +108,12 @@ To start the program and view available options, use:
 ```bash
 uv run main.py --help
 ```
+
+## 🧩 Web Extension
+
+While I plan to develop this into a browser extension, it’s not ready yet. During my search for existing solutions, I came across **[media-downloader-unleashed](https://github.com/helloyanis/media-downloader-unleashed)**.
+
+I haven’t tested it myself, but it might be worth trying to see if it fits your requirements.
 
 ## 📜 License
 

@@ -19,14 +19,33 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Download a video from an m3u8 URL.")
     parser.add_argument("url", help="URL to the master m3u8 file")
     parser.add_argument(
-        "--output", default="output.mp4", help="Output filename (default: output.mp4)"
+        "-o",
+        "--output",
+        default="output.mp4",
+        help="Output filename (default: output.mp4)",
     )
     parser.add_argument(
+        "-m",
+        "--max-tries",
+        type=int,
+        default=20,
+        help="Number of maximum tries (default: 20)",
+    )
+    parser.add_argument(
+        "-c",
         "--concurrent",
         type=int,
         default=10,
         help="Number of concurrent downloads (default: 10)",
     )
+    parser.add_argument(
+        "-t",
+        "--timeout",
+        type=int,
+        default=20,
+        help="Number of concurrent downloads (default: 10)",
+    )
+    parser.add_argument("-v", "--verbose", action="store_true")  # on/off flag
     return parser.parse_args()
 
 
@@ -41,24 +60,17 @@ def fetch_m3u8_data(url):
 
 
 def find_playlist_url(m3u8_master, base_url):
-    for media in m3u8_master.data.get("media", []):
-        if (
-            media.get("type") == "AUDIO"
-            and media.get("language") == "eng"
-            and media.get("group_id") == "720p"
-        ):
-            return urljoin(base_url, media["uri"])
-    # Fallback: use the first playlist if no match is found
     if m3u8_master.data.get("playlists"):
         return urljoin(base_url, m3u8_master.data["playlists"][0]["uri"])
+
     raise ValueError("No suitable playlist found in m3u8 data.")
 
 
-def download_segment(url, session):
+def download_segment(url, session, max_tries=20, timeout=20):
     tries = 0
-    while tries < 3:
+    while tries < max_tries:
         try:
-            r = session.get(url, timeout=10)
+            r = session.get(url, timeout=timeout)
             r.raise_for_status()
             return r.content
         except Exception as e:
@@ -69,10 +81,10 @@ def download_segment(url, session):
     return None
 
 
-def worker(q, session, segments):
+def worker(q, session, segments, max_tries=20, timeout=20):
     while True:
         url = q.get()
-        segment_data = download_segment(url, session)
+        segment_data = download_segment(url, session, max_tries, timeout)
         if segment_data:
             segments[url] = segment_data
         q.task_done()
@@ -98,7 +110,9 @@ def main():
     # Prepare queue and threads
     q = Queue(args.concurrent * 2)
     for _ in range(args.concurrent):
-        t = Thread(target=worker, args=(q, session, segments))
+        t = Thread(
+            target=worker, args=(q, session, segments, args.max_tries, args.timeout)
+        )
         t.daemon = True
         t.start()
 
@@ -132,12 +146,15 @@ def main():
             fs.write(segment)
 
     # Convert to mp4 using ffmpeg
+    filepath = str(args.output)
+    if "." not in filepath:
+        filepath += ".mp4"
     try:
         subprocess.run(
-            ["ffmpeg", "-i", "temp.ts", "-c", "copy", f"{args.output}"], check=True
+            ["ffmpeg", "-i", "temp.ts", "-c", "copy", f"{filepath}"], check=True
         )
         os.remove("temp.ts")
-        print(f"Successfully saved to {args.output}")
+        print(f"Successfully saved to {filepath}")
     except subprocess.CalledProcessError as e:
         print(f"Error converting to mp4: {e}", file=sys.stderr)
         sys.exit(1)

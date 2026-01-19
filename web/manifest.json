@@ -1,0 +1,83 @@
+{
+    "description": "Test web extension",
+    "manifest_version": 1,
+    "author": "N£utr0nys",
+    "short_name": "TestWeb",
+    "name": "TestWeb extension",
+    "version": "2.0",
+    "homepage_url": "https://github.com/leoraclet/blob-downloader",
+    "host_permissions": [
+        "*://*/*",
+        "http://*/*",
+        "https://*/*",
+        "file:///*",
+        "<all_urls>"
+    ],
+    "icons": {
+        "16": "icons/icon.svg",
+        "24": "icons/icon.svg",
+        "32": "icons/icon.svg",
+        "48": "icons/icon.svg",
+        "64": "icons/icon.svg",
+        "128": "icons/icon.svg"
+    },
+    "browser_action": {
+        "default_popup": "popup.html",
+        "browser_style": false,
+        "default_area": "navbar",
+        "default_icon": {
+            "16": "icons/icon.svg",
+            "24": "icons/icon.svg",
+            "32": "icons/icon.svg",
+            "48": "icons/icon.svg",
+            "64": "icons/icon.svg",
+            "128": "icons/icon.svg"
+        }
+    },
+    "browser_specific_settings": {
+        "gecko": {
+            "strict_min_version": "54.0a1"
+        },
+        "data_collection_permissions": {
+            "required": [
+                "none"
+            ]
+        }
+    },
+    "background": {
+        "scripts": [
+            "src/background.js"
+        ],
+        "service_worker": "src/background.js"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "js": [
+                "src/content.js"
+            ]
+        }
+    ],
+    "options_ui": {
+        "page": "options/options.html"
+    },
+    "permissions": [
+        "notifications",
+        "activeTab",
+        "downloads",
+        "alarms",
+        "dns",
+        "menus",
+        "privacy",
+        "storage",
+        "tabs",
+        "unlimitedStorage",
+        "webNavigation",
+        "webRequest",
+        "webRequestBlocking",
+        "<all_urls>",
+        "https://httpbin.org/basic-auth/*"
+    ]
+}
